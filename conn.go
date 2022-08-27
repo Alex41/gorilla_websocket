@@ -280,6 +280,8 @@ type Conn struct {
 
 	readDecompress         bool // whether last read frame had RSV1 set
 	newDecompressionReader func(io.Reader) io.ReadCloser
+
+	data sync.Map
 }
 
 func newConn(conn net.Conn, isServer bool, readBufferSize, writeBufferSize int, writeBufferPool BufferPool, br *bufio.Reader, writeBuf []byte) *Conn {
@@ -337,6 +339,14 @@ func (c *Conn) setReadRemaining(n int64) error {
 // Subprotocol returns the negotiated protocol for the connection.
 func (c *Conn) Subprotocol() string {
 	return c.subprotocol
+}
+
+func (c *Conn) SetData(key string, value any) {
+	c.data.Store(key, value)
+}
+
+func (c *Conn) GetData(key string) (any, bool) {
+	return c.data.Load(key)
 }
 
 // Close closes the underlying network connection without sending or waiting
